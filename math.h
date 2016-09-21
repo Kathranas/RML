@@ -474,7 +474,7 @@ template<typename T, std::size_t M, std::size_t N> Mat<T, 1, M> multiply(const M
 
 	for(std::size_t i=0; i<M; ++i)
 	{
-		ret[i] = dot(a[i], b.data);
+		ret[i] = dot(a[i], b.arr);
 	}
 	return ret;
 }
