@@ -359,16 +359,20 @@ template<typename T> bool inline operator==(const Mat<T, 1, 4>& lhs, const Mat<T
 }
 
 
-
 template<typename T, std::size_t N> T dot(const std::array<T, N>& a, const std::array<T, N>& b)
 {
 	T total = 0;
 
 	for(std::size_t i=0; i<N; ++i)
 	{
-		total += (a[i] * b[i]);
+		total += a[i] * b[i];
 	}
 	return total;
+}
+
+template<typename T, std::size_t N> T inline dot(const Mat<T, 1, N>& a, const Mat<T, 1, N>& b)
+{
+	return dot(a.arr, b.arr);
 }
 
 template<typename T, std::size_t N> T inline abs_squared(const std::array<T, N>& a)
@@ -381,7 +385,7 @@ template<typename T, std::size_t N> T inline abs(const std::array<T, N>& a)
 	return std::sqrt(abs_squared(a));
 }
 
-template<typename T> Mat<T, 1, 3> cross(const Mat<T, 1, 3>& a, const Mat<T, 1, 3>& b) // only defined for 3D
+template<typename T> Mat<T, 1, 3> cross(const Mat<T, 1, 3>& a, const Mat<T, 1, 3>& b) // only possible in 3D
 {
 	return {(a.y*b.z - a.z*b.y), (a.z*b.x - a.x*b.z), (a.x*b.y - a.y*b.x)};
 }
