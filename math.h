@@ -10,59 +10,53 @@
 namespace rml
 {
 
+/* A general matrix */
+
 template<typename T, std::size_t M, std::size_t N> struct Mat
 {
-	std::array<std::array<T, N>, M> data;
-
-	std::array<T, N>& operator[](std::size_t i)
+	union
 	{
-		return this->data[i];
+		std::array<T, M*N> arr;
+		std::array<std::array<T, N>, M> arr2d;
+	};
+
+	std::array<T, N>& operator[](const std::size_t i)
+	{
+		return arr2d[i];
 	}
 	const std::array<T, N>& operator[](const std::size_t i) const
 	{
-		return this->data[i];
+		return arr2d[i];
 	}
 	Mat& operator+=(const Mat& rhs)
 	{
-		for(std::size_t i=0; i<M; ++i)
+		for(std::size_t i=0; i<M*N; ++i)
 		{
-			for(std::size_t j=0; i<N; ++j)
-			{
-				this->data[i][j] += rhs.data[i][j];
-			}
+			this->arr[i] += rhs.arr[i];
 		}
 		return *this;
 	}
 	Mat& operator-=(const Mat& rhs)
 	{
-		for(std::size_t i=0; i<M; ++i)
+		for(std::size_t i=0; i<M*N; ++i)
 		{
-			for(std::size_t j=0; j<N; ++j)
-			{
-				this->data[i][j] -= rhs.data[i][j];
-			}
+			this->arr[i] -= rhs.arr[i];
 		}
 		return *this;
 	}
 	Mat& operator*=(const T& rhs)
 	{
-		for(std::size_t i=0; i<M; ++i)
+		for(std::size_t i=0; i<M*N; ++i)
 		{
-			for(std::size_t j=0; j<N; ++i)
-			{
-				this->data[i][j] *= rhs;
-			}
+			this->arr[i] *= rhs;
 		}
 		return *this;
 	}
 	Mat& operator/=(const T& rhs)
 	{
-		for(std::size_t i=0; i<M; ++i)
+		for(std::size_t i=0; i<M*N; ++i)
 		{
-			for(std::size_t j=0; j<N; ++j)
-			{
-				this->data[i][j] /= rhs;
-			}
+			this->arr[i] /= rhs;
 		}
 		return *this;
 	}
@@ -70,13 +64,10 @@ template<typename T, std::size_t M, std::size_t N> struct Mat
 
 template<typename T, std::size_t M, std::size_t N> bool operator==(const Mat<T, M, N>& lhs, const Mat<T, M, N>& rhs)
 {
-	for(std::size_t i=0; i<M; ++i)
+	for(std::size_t i=0; i<M*N; ++i)
 	{
-		for(std::size_t j=0; j<N; ++j)
-		{
-			if(lhs[i][j] != rhs[i][j])
-				return false;
-		}
+		if(lhs.arr[i] != rhs.arr[i])
+			return false;
 	}
 	return true;
 }
@@ -110,28 +101,30 @@ template<typename T, std::size_t M, std::size_t N> Mat<T, M, N> operator*(T lhs,
 	return rhs;
 }
 
+/* A general vector: a one dimensional matrix. */
+
 template<typename T, std::size_t N> struct Mat<T, 1, N>
 {
 	union
 	{
-		std::array<T, N> data;
+		std::array<T, N> arr;
 		struct{T x, y, z, w;};
 	};
 
-	T& operator[](const std::size_t& i)
+	T& operator[](const std::size_t i)
 	{
-		return data[i];
+		return arr[i];
 	}
-	const T& operator[](const std::size_t& i) const
+	const T& operator[](const std::size_t i) const
 	{
-		return data[i];
+		return arr[i];
 	}
 
 	Mat& operator+=(const Mat& rhs)
 	{
 		for(std::size_t i=0; i<N; ++i)
 		{
-			this->data[i] += rhs[i];
+			this->arr[i] += rhs.arr[i];
 		}
 		return *this;
 	}
@@ -139,7 +132,7 @@ template<typename T, std::size_t N> struct Mat<T, 1, N>
 	{
 		for(std::size_t i=0; i<N; ++i)
 		{
-			this->data[i] -= rhs[i];
+			this->arr[i] -= rhs.arr[i];
 		}
 		return *this;
 	}
@@ -147,7 +140,7 @@ template<typename T, std::size_t N> struct Mat<T, 1, N>
 	{
 		for(std::size_t i=0; i<N; ++i)
 		{
-			this->data[i] *= rhs;
+			this->arr[i] *= rhs;
 		}
 		return *this;
 	}
@@ -155,216 +148,217 @@ template<typename T, std::size_t N> struct Mat<T, 1, N>
 	{
 		for(std::size_t i=0; i<N; ++i)
 		{
-			this->data[i] /= rhs;
+			this->arr[i] /= rhs;
 		}
 		return *this;
 	}
 };
-template<typename T, std::size_t N> bool operator==(const Mat<T, 1, N>& lhs, const Mat<T, 1, N>& rhs)
-{
-	for(std::size_t i=0; i<N; ++i)
-	{
-		if(lhs[i] != rhs[i])
-			return false;
-	}
-	return true;
-}
+
+/* 1D vector */
 
 template<typename T> struct Mat<T, 1, 1>
 {
 	union 
 	{
-		std::array<T, 1> data;
+		std::array<T, 1> arr;
 		struct{T x;};
 	};
 
-	T& operator[](const std::size_t& i)
+	T& operator[](const std::size_t i)
 	{
-		return data[i];
+		return arr[i];
 	}
-	const T& operator[](const std::size_t& i) const
+	const T& operator[](const std::size_t i) const
 	{
-		return data[i];
+		return arr[i];
 	}
 
 	Mat& operator+=(const Mat& rhs)
 	{
-		this->data[0] += rhs[0];
+		this->x += rhs.x;
 		return *this;
 	}
 	Mat& operator-=(const Mat& rhs)
 	{
-		this->data[0] -= rhs[0];
+		this->x -= rhs.x;
 		return *this;
 	}
 	Mat& operator*=(const T& rhs)
 	{
-		this->data[0] *= rhs;
+		this->x *= rhs;
 		return *this;
 	}
 	Mat& operator/=(const T& rhs)
 	{
-		this->data[0] /= rhs;
+		this->x /= rhs;
 		return *this;
 	}
 };
 template<typename T> bool inline operator==(const Mat<T, 1, 1>& lhs, const Mat<T, 1, 1>& rhs)
 {
-	return lhs[0] == rhs[0];
+	return lhs.x == rhs.x;
 }
+
+/* 2D vector */
 
 template<typename T> struct Mat<T, 1, 2>
 {
 	union
 	{
-		std::array<T, 2> data;
+		std::array<T, 2> arr;
 		struct{T x, y;};
 	};
 
-	T& operator[](const std::size_t& i)
+	T& operator[](std::size_t i)
 	{
-		return data[i];
+		return arr[i];
 	}
-	const T& operator[](const std::size_t& i) const
+	const T& operator[](std::size_t i) const
 	{
-		return data[i];
+		return arr[i];
 	}
 
 	Mat& operator+=(const Mat& rhs)
 	{
-		this->data[0] += rhs[0];
-		this->data[1] += rhs[1];
+		this->x += rhs.x;
+		this->y += rhs.y;
 		return *this;
 	}
 	Mat& operator-=(const Mat& rhs)
 	{
-		this->data[0] -= rhs[0];
-		this->data[1] -= rhs[1];
+		this->x -= rhs.x;
+		this->y -= rhs.y;
 		return *this;
 	}
 	Mat& operator*=(const T& rhs)
 	{
-		this->data[0] *= rhs;
-		this->data[1] *= rhs;
+		this->x *= rhs;
+		this->y *= rhs;
 		return *this;
 	}
 	Mat& operator/=(const T& rhs)
 	{
-		this->data[0] /= rhs;
-		this->data[1] /= rhs;
+		this->x /= rhs;
+		this->y /= rhs;
 		return *this;
 	}
 };
 template<typename T> bool inline operator==(const Mat<T, 1, 2>& lhs, const Mat<T, 1, 2>& rhs)
 {
-	return lhs[0] == rhs[0] && lhs[1] == rhs[1];
+	return lhs.x == rhs.x && lhs.y == rhs.y;
 }
+
+/* 3D vector */
 
 template<typename T> struct Mat<T, 1, 3>
 {
 	union
 	{
-		std::array<T, 3> data;
+		std::array<T, 3> arr;
 		struct{T x, y, z;};
 	};
 
-	T& operator[](const std::size_t& i)
+	T& operator[](const std::size_t i)
 	{
-		return data[i];
+		return arr[i];
 	}
-	const T& operator[](const std::size_t& i) const
+	const T& operator[](const std::size_t i) const
 	{
-		return data[i];
+		return arr[i];
 	}
 
 	Mat& operator+=(const Mat& rhs)
 	{
-		this->data[0] += rhs[0];
-		this->data[1] += rhs[1];
-		this->data[2] += rhs[2];
+		this->x += rhs.x;
+		this->y += rhs.y;
+		this->z += rhs.z;
 		return *this;
 	}
 	Mat& operator-=(const Mat& rhs)
 	{
-		this->data[0] -= rhs[0];
-		this->data[1] -= rhs[1];
-		this->data[2] -= rhs[2];
+		this->x -= rhs.x;
+		this->y -= rhs.y;
+		this->z -= rhs.z;
 		return *this;
 	}
 	Mat& operator*=(const T& rhs)
 	{
-		this->data[0] *= rhs;
-		this->data[1] *= rhs;
-		this->data[2] *= rhs;
+		this->x *= rhs;
+		this->y *= rhs;
+		this->z *= rhs;
 		return *this;
 	}
 	Mat& operator/=(const T& rhs)
 	{
-		this->data[0] /= rhs;
-		this->data[1] /= rhs;
-		this->data[2] /= rhs;
+		this->x /= rhs;
+		this->y /= rhs;
+		this->z /= rhs;
 		return *this;
 	}
 };
 template<typename T> bool inline operator==(const Mat<T, 1, 3>& lhs, const Mat<T, 1, 3>& rhs)
 {
-	return lhs[0] == rhs[0] && lhs[1] == rhs[1] && lhs[2] == rhs[2];
+	return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
 }
+
+/* 4D vector */
 
 template<typename T> struct Mat<T, 1, 4>
 {
 	union
 	{
-		std::array<T, 4> data;
+		std::array<T, 4> arr;
 		struct{T x, y, z, w;};
 	};
 
 	T& operator[](const std::size_t& i)
 	{
-		return data[i];
+		return arr[i];
 	}
 	const T& operator[](const std::size_t& i) const
 	{
-		return data[i];
+		return arr[i];
 	}
 
 	Mat& operator+=(const Mat& rhs)
 	{
-		this->data[0] += rhs[0];
-		this->data[1] += rhs[1];
-		this->data[2] += rhs[2];
-		this->data[3] += rhs[3];
+		this->x += rhs.x;
+		this->y += rhs.y;
+		this->z += rhs.z;
+		this->w += rhs.w;
 		return *this;
 	}
 	Mat& operator-=(const Mat& rhs)
 	{
-		this->data[0] -= rhs[0];
-		this->data[1] -= rhs[1];
-		this->data[2] -= rhs[2];
-		this->data[3] -= rhs[3];
+		this->x -= rhs.x;
+		this->y -= rhs.y;
+		this->z -= rhs.z;
+		this->w -= rhs.w;
 		return *this;
 	}
 	Mat& operator*=(const T& rhs)
 	{
-		this->data[0] *= rhs;
-		this->data[1] *= rhs;
-		this->data[2] *= rhs;
-		this->data[3] *= rhs;
+		this->x *= rhs;
+		this->y *= rhs;
+		this->z *= rhs;
+		this->w *= rhs;
 		return *this;
 	}
 	Mat& operator/=(const T& rhs)
 	{
-		this->data[0] /= rhs;
-		this->data[1] /= rhs;
-		this->data[2] /= rhs;
-		this->data[3] /= rhs;
+		this->x /= rhs;
+		this->y /= rhs;
+		this->z /= rhs;
+		this->w /= rhs;
 		return *this;
 	}
 };
 template<typename T> bool inline operator==(const Mat<T, 1, 4>& lhs, const Mat<T, 1, 4>& rhs)
 {
-	return lhs[0] == rhs[0] && lhs[1] == rhs[1] && lhs[2] == rhs[2] && lhs[3] == rhs[3];
+	return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z && lhs.w == rhs.w;
 }
+
+
 
 template<typename T, std::size_t N> T dot(const std::array<T, N>& a, const std::array<T, N>& b)
 {
@@ -475,7 +469,6 @@ template<typename T> void scale(Mat<T, 4, 4>& trans, const Mat<T, 1, 3>& v)
 
 	trans = multiply(m, trans);
 }
-
 
 template<typename T> void rotate(Mat<T, 4, 4>& trans, const float angle, const Mat<T, 1, 3>& v)
 {
