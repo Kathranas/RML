@@ -20,6 +20,10 @@ template<typename T, std::size_t M, std::size_t N> struct Mat
 		std::array<std::array<T, N>, M> arr2d;
 	};
 
+	Mat() = default;
+	Mat(std::array<T, M*N> data) : arr{data} {}
+	Mat(std::array<std::array<T, N>, M> data) : arr2d{data} {}
+
 	std::array<T, N>& operator[](const std::size_t i)
 	{
 		return arr2d[i];
@@ -111,6 +115,9 @@ template<typename T, std::size_t N> struct Mat<T, 1, N>
 		struct{T x, y, z, w;};
 	};
 
+	Mat() = default;
+	Mat(std::array<T, N> data) : arr{data} {}
+
 	T& operator[](const std::size_t i)
 	{
 		return arr[i];
@@ -164,6 +171,10 @@ template<typename T> struct Mat<T, 1, 1>
 		struct{T x;};
 	};
 
+	Mat() = default;
+	Mat(std::array<T, 1> data) : arr{data} {}
+	Mat(T data_x) : x{data_x} {}
+
 	T& operator[](const std::size_t i)
 	{
 		return arr[i];
@@ -208,6 +219,10 @@ template<typename T> struct Mat<T, 1, 2>
 		std::array<T, 2> arr;
 		struct{T x, y;};
 	};
+
+	Mat() = default;
+	Mat(std::array<T, 2> data) : arr{data} {}
+	Mat(T data_x, T data_y) : x{data_x}, y{data_y} {}
 
 	T& operator[](std::size_t i)
 	{
@@ -257,6 +272,10 @@ template<typename T> struct Mat<T, 1, 3>
 		std::array<T, 3> arr;
 		struct{T x, y, z;};
 	};
+
+	Mat() = default;
+	Mat(std::array<T, 3> data) : arr{data} {}
+	Mat(T data_x, T data_y, T data_z) : x{data_x}, y{data_y}, z{data_z} {}
 
 	T& operator[](const std::size_t i)
 	{
@@ -310,6 +329,10 @@ template<typename T> struct Mat<T, 1, 4>
 		std::array<T, 4> arr;
 		struct{T x, y, z, w;};
 	};
+
+	Mat() = default;
+	Mat(std::array<T, 4> data) : arr{data} {}
+	Mat(T data_x, T data_y, T data_z, T data_w) : x{data_x}, y{data_y}, z{data_z}, w{data_w} {}
 
 	T& operator[](const std::size_t& i)
 	{
