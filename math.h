@@ -498,12 +498,12 @@ template<typename T> void rotate(Mat<T, 4, 4>& trans, const float angle, const M
 	trans = multiply(m, trans);
 }
 
-float to_radians(float degrees)
+template<typename T> T to_radians(T degrees)
 {
 	return degrees * M_PI / 180;
 }
 
-float to_degrees(float radians)
+template<typename T> T to_degrees(T radians)
 {
 	return radians * 180 / M_PI;
 }
