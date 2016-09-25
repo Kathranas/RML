@@ -530,15 +530,31 @@ template<typename T> T to_degrees(T radians)
 
 template<typename T>Mat<T, 4, 4> perspective(float fov, float aratio, float n, float f)
 {
-	Mat<T, 4, 4> mat{};
 
-	float s = 1.0f / std::tan(to_radians(fov) / 2.0f);
+	float t = std::tan(to_radians(fov) / 2.0f) * n;
+	float b = -t;
+	float r = t * aratio;
+	float l = -r;
 
-	mat[0][0] = s;
-	mat[1][1] = s;
-	mat[2][2] = - f / (f - n);
-	mat[2][3] = -1;
-	mat[3][2] = -(f*n) / (f - n);
+	Mat<T, 4, 4> mat;
+
+	mat[0][0] = 2*n / (r - l);
+	mat[0][1] = 0;
+	mat[0][2] = (r + l) / (r - l);
+	mat[0][3] = 0;
+	mat[1][0] = 0;
+	mat[1][1] = 2*n / (t - b);
+	mat[1][2] = (t + b) / (t - b);
+	mat[1][3] = 0;
+	mat[2][0] = 0;
+	mat[2][1] = 0;
+	mat[2][2] = - (f + n) / (f - n);
+	mat[2][3] = - 2*f*n / (f - n);
+	mat[3][0] = 0;
+	mat[3][1] = 0;
+	mat[3][2] = -1;
+	mat[3][3] = 0;
+
 	return mat;
 }
 
