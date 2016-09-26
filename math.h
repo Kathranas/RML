@@ -20,9 +20,9 @@ template<typename T, std::size_t M, std::size_t N> struct Mat
 		std::array<std::array<T, N>, M> arr2d;
 	};
 
-	Mat() = default;
-	Mat(std::array<T, M*N> data) : arr{data} {}
-	Mat(std::array<std::array<T, N>, M> data) : arr2d{data} {}
+//	Mat() = default;
+//	Mat(std::array<T, M*N> data) : arr{data} {}
+//	Mat(std::array<std::array<T, N>, M> data) : arr2d{data} {}
 
 	std::array<T, N>& operator[](const std::size_t i)
 	{
@@ -408,6 +408,16 @@ template<typename T, std::size_t N> T inline abs(const std::array<T, N>& a)
 	return std::sqrt(abs_squared(a));
 }
 
+template<typename T, std::size_t N> T inline abs(const Mat<T, 1, N>& a)
+{
+	return abs(a);
+}
+
+template<typename T, std::size_t N> Mat<T, 1, N> direction(const Mat<T, 1, N>& a)
+{
+	return a / abs(a.arr);
+}
+
 template<typename T> Mat<T, 1, 3> cross(const Mat<T, 1, 3>& a, const Mat<T, 1, 3>& b) // only possible in 3D
 {
 	return {(a.y*b.z - a.z*b.y), (a.z*b.x - a.x*b.z), (a.x*b.y - a.y*b.x)};
@@ -501,7 +511,7 @@ template<typename T> void rotate(Mat<T, 4, 4>& trans, const float angle, const M
 {
 	float c = std::cos(angle);
 	float s = std::sin(angle);
-	Mat<T, 1, 3> u = v / rml::abs(v.data);
+	Mat<T, 1, 3> u = v / rml::abs(v.arr);
 
 	Mat<T, 4, 4> m = identity<T, 4>();
 
@@ -528,7 +538,7 @@ template<typename T> T to_degrees(T radians)
 	return radians * 180 / M_PI;
 }
 
-template<typename T>Mat<T, 4, 4> perspective(float fov, float aratio, float n, float f)
+template<typename T> Mat<T, 4, 4> perspective(float fov, float aratio, float n, float f)
 {
 
 	float t = std::tan(to_radians(fov) / 2.0f) * n;
@@ -536,26 +546,40 @@ template<typename T>Mat<T, 4, 4> perspective(float fov, float aratio, float n, f
 	float r = t * aratio;
 	float l = -r;
 
-	Mat<T, 4, 4> mat;
-
-	mat[0][0] = 2*n / (r - l);
-	mat[0][1] = 0;
-	mat[0][2] = (r + l) / (r - l);
-	mat[0][3] = 0;
-	mat[1][0] = 0;
-	mat[1][1] = 2*n / (t - b);
-	mat[1][2] = (t + b) / (t - b);
-	mat[1][3] = 0;
-	mat[2][0] = 0;
-	mat[2][1] = 0;
-	mat[2][2] = - (f + n) / (f - n);
-	mat[2][3] = - 2*f*n / (f - n);
-	mat[3][0] = 0;
-	mat[3][1] = 0;
-	mat[3][2] = -1;
-	mat[3][3] = 0;
+	Mat<T, 4, 4> mat
+	{
+		2*n/(r - l),     0,               0,                0,
+		0,               2*n / (t - b),   0,                0,
+	    (r + l)/(r - l), (t + b)/(t - b), -(f + n)/(f - n), -1,
+		0,               0,               -2*f*n / (f - n), 0
+	};
 
 	return mat;
+}
+
+template<typename T> Mat<T, 4, 4> look_at(const Mat<T, 1, 3>& p, const Mat<T, 1, 3>& t, const Mat<T, 1, 3>& uu)
+{
+	Mat<T, 1, 3> d = direction(p - t);
+	Mat<T, 1, 3> r = direction(cross(uu, d));
+	Mat<T, 1, 3> u = cross(d, r);
+
+	Mat<T, 4, 4> temp
+	{
+		1, 0, 0, -p.x,
+		0, 1, 0, -p.y,
+		0, 0, 1, -p.z,
+		0, 0, 0, 1
+	};
+
+	Mat<T, 4, 4> look
+	{
+		r.x,  r.y,  r.z,  0,
+	    u.x,  u.y,  u.z,  0,
+		d.x,  d.y,  d.z,  0,
+		0,    0,    0,    1
+	};
+
+	return rml::multiply(look, temp);
 }
 
 } // namespace rml
